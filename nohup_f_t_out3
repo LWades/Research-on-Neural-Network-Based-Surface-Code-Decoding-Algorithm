@@ -1,0 +1,27 @@
+Namespace(dist=3, out='find_threshold_output', dist2=7, samples=100000, plow=0.82, phigh=0.87, steps=10)
+into args.dist2
+find_threshold start.
+new!
+Count:  1
+ into step p:  0.845
+1 / estimate:  1.18983
+1 / high.x:  [1.18013825]
+1 / low.x:  [1.19952175]
+1 / estimate:  1.0663099999999999
+1 / high.x:  [1.05762439]
+1 / low.x:  [1.07499561]
+draw picture
+ samples_small[-1][0]:  [1.18983]  sample_small[-1][1]:  [1.18013825]  samples_small[-1][2]:  [1.19952175]
+ samples_large[-1][0]:  [1.06631]  samples_large[-1][1]:  [1.05762439]  samples_large[-1][2]:  [1.07499561]
+ready to while
+Count:  2
+ samples_small[-1][0]:  [1.18983]  sample_small[-1][1]:  [1.18013825]  samples_small[-1][2]:  [1.19952175]
+ samples_large[-1][0]:  [1.06631]  samples_large[-1][1]:  [1.05762439]  samples_large[-1][2]:  [1.07499561]
+ bs: p become high
+ into step p:  0.8574999999999999
+1 / estimate:  1.21575
+1 / high.x:  [1.20584712]
+1 / low.x:  [1.22565288]
+1 / estimate:  1.0702800000000001
+1 / high.x:  [1.06156205]
+1 / low.x:  [1.07899795]

@@ -49,12 +49,12 @@ from tqdm import tqdm
 if args.dist2:
     print("into args.dist2")
     find_threshold(Lsmall=args.dist, Llarge=args.dist2,
-		   p=(args.plow+args.phigh)/2, high=args.phigh, low=args.plow,
-		   # samples=args.samples, logfile=args.out)
-		   samples=args.samples, logfile=None)
+                   p=(args.plow + args.phigh) / 2, high=args.phigh, low=args.plow,
+                   # samples=args.samples, logfile=args.out)
+                   samples=args.samples, logfile=None)
 else:
     print("into not args.dist2")
-    ps = np.linspace(args.plow, args.phigh, args.steps+1)[:-1]
+    ps = np.linspace(args.plow, args.phigh, args.steps + 1)[:-1]
     r = []
     for p in tqdm(ps):
         r.append(sample(args.dist, p, args.samples))

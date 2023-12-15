@@ -19,10 +19,10 @@ args = parser.parse_args()
 from codes import generate_training_data
 import numpy as np
 
-_, fractions =  generate_training_data(l=args.dist,
-                                       p=args.prob,
-                                       train_size=0,
-                                       test_size=args.neval,
+_, fractions = generate_training_data(l=args.dist,
+                                      p=args.prob,
+                                      train_size=0,
+                                      test_size=args.neval,
                                       )
 
 np.savetxt(args.out, fractions)

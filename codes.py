@@ -1,11 +1,11 @@
-'''
+"""
 Tested only in interactive use with the Jupyter notebook.
 Some tools might fail without it due to the use of `tnrange`
 and `tqdm_notebook` from `tqdm`. Similarly `matplotlib` is
 used with its interactive interface, which might cause trouble
 if `ioff` is not called.
 整个code.py相当于一个工具包，其他的文件需要做什么从code中import函数来实现
-'''
+"""
 
 import itertools
 
@@ -34,7 +34,7 @@ except ImportError:
 
 
 class ToricCode:
-    '''
+    """
 
     ::
 
@@ -73,10 +73,10 @@ class ToricCode:
         Q52--Z22--Q50
               |
              Q02
-    '''
+    """
 
     def __init__(self, L):  # toric code数据比特和稳定子的初始化，稳定子也就是对应了测量比特
-        '''Toric code of ``2 L**2`` physical qubits and distance ``L``.'''
+        """Toric code of ``2 L**2`` physical qubits and distance ``L``."""
         self.L = L  # toric code的码距
         self.Xflips = np.zeros((2 * L, L), dtype=np.dtype(
             'b'))  # 发生了 X 错误的qubits qubits where an X error occured 为什么是2L*L，这数对吗；数据类型为byte
@@ -145,7 +145,7 @@ class ToricCode:
         return E
 
     def Zstabilizer(self):
-        '''Return all measurements of the Z stabilizer with ``true`` marking non-trivial.'''
+        """Return all measurements of the Z stabilizer with ``true`` marking non-trivial."""
         # 根据错误情况分析稳定子的样子
         # 相当于实现了一次测量，输出稳定子应该的样子
         stab = self._Zstab
@@ -157,7 +157,7 @@ class ToricCode:
         return stab
 
     def Xstabilizer(self):
-        '''Return all measurements of the X stabilizer with ``true`` marking non-trivial.'''
+        """Return all measurements of the X stabilizer with ``true`` marking non-trivial."""
         # 同上
         stab = self._Xstab
         Z = self.Zflips
@@ -169,7 +169,7 @@ class ToricCode:
 
     # 绘制 qubit 翻转的坐标
     def _plot_flips(self, s, flips_yx, label):  # s: 一个子图对象；flips_yx：存储发生错误的量子比特坐标的数组；label：标记翻转比特的标签
-        '''Given an array of yx coordiante plot qubit flips on subplot ``s``.'''
+        """Given an array of yx coordiante plot qubit flips on subplot ``s``."""
         if not len(flips_yx): return  # 没有翻转（发生错误的）比特，那就不画了，直接返回
         y, x = flips_yx
         x = x.astype(float)  # 将x坐标转换为浮点数，以便进行数值操作
@@ -179,7 +179,7 @@ class ToricCode:
         s.plot(x, y, 'o', ms=50 / self.L, label=label)  # s 提供了绘图的上下文，'o'表示画的形状是o形，ms设置形状的大小，用码距 L 来进行伸缩，label打标签
 
     def plot(self, legend=True, stabs=True):
-        '''Plot the state of the system (including stabilizers).'''
+        """Plot the state of the system (including stabilizers)."""
         f = plt.figure(figsize=(5, 5))  # 创建一个全新的 matplotlib 图像，尺寸 5x5。
         s = f.add_subplot(1, 1, 1)  # 在图像 f 上添加一个子图s，（1，1，1）表示图像只包含一个子图
         self._plot_legend = legend
@@ -244,15 +244,15 @@ class ToricCode:
 
     # 带有结点间距离的Z稳定子图
     def Zwgraph(self):
-        '''The distance graph for non-trivial Z stabilizer.'''
+        """The distance graph for non-trivial Z stabilizer."""
         return self._wgraph('Z')
 
     def Xwgraph(self):
-        '''The distance graph for non-trivial X stabilizer.'''
+        """The distance graph for non-trivial X stabilizer."""
         return self._wgraph('X')
 
     def Zcorrections(self):
-        '''Qubits on which to apply Z operator to fix the X stabilizer.'''
+        """Qubits on which to apply Z operator to fix the X stabilizer."""
         L = self.L
         graph = self.Xwgraph()  # 创建了表示 X 稳定子关系的加权图
         matches = {tuple(sorted(_)) for _ in
@@ -278,7 +278,7 @@ class ToricCode:
         return matches, qubits  # matches表示 mwpm 根据稳定子情况得到的匹配边（稳定子的坐标），qubits表示需要翻转的量子比特位置的集合
 
     def Xcorrections(self):
-        '''Qubits on which to apply X operator to fix the Z stabilizer.'''
+        """Qubits on which to apply X operator to fix the Z stabilizer."""
         L = self.L
         graph = self.Zwgraph()
         matches = {tuple(sorted(_)) for _ in
@@ -304,7 +304,7 @@ class ToricCode:
         return matches, qubits
 
     def plot_corrections(self, s, plot_matches=False):
-        '''Add to subplot ``s`` the corrections that have to be performed according to min. weight matching.'''
+        """Add to subplot ``s`` the corrections that have to be performed according to min. weight matching."""
 
         # 在子图中添加纠错操作的可视化（包含非平凡稳定子的线条和待纠错的数据量子比特的画面），纠错操作基于权重匹配算法
         def stitch_torus(y1, y2):  # 处理周期性边界
@@ -354,7 +354,7 @@ class ToricCode:
 
     # 以去极化错误模型为准，对当前的toric code随机施加错误
     def add_errors(self, p):  # TODO probably faster with numba
-        '''Add X, Y, Z errors at rate ``(1-p)/3`` each, e.g. depolarization at ``1-p``.'''
+        """Add X, Y, Z errors at rate ``(1-p)/3`` each, e.g. depolarization at ``1-p``."""
         rand = np.random.rand(self.L * 2, self.L)  # 生成一个和toric code 数据量子比特大小尺寸一直的随机二维数组 2L*L。
         q = (1 - p) / 3  # XYZ错误率均分
         x_flips = rand < q  # 随机数在哪个范围发生 X 翻转；bool类型矩阵
@@ -377,14 +377,14 @@ class ToricCode:
         return z1, z2, x1, x2
 
     def step_error_and_perfect_correction(self, p):
-        ''' 执行一个完整的错误添加和纠正的周期 '''
+        """ 执行一个完整的错误添加和纠正的周期 """
         self.add_errors(p)
         self.perform_perfect_correction()
         return not any(self.logical_errors())
 
     @staticmethod
     def assert_correctness():  # 单元测试
-        '''A bunch of functionality is implemented in multiple ways - here we assert they are equivalent.'''
+        """A bunch of functionality is implemented in multiple ways - here we assert they are equivalent."""
         c = 0
         while c < 1000:
             t = ToricCode(3)
@@ -413,9 +413,9 @@ class ToricCode:
 def sample(L, p, samples=1000, cutoff=200):  # L 码距 p 物理错误率 samples 运行的总样本数 cutoff
     # 模拟和统计 toric code 在给定条件下的性能
     # 重复执行一系列操作，以测量 toric code 在特定的错误率（物理错误率）下toric code何时失败（发生逻辑错误）
-    '''Repeated single shot corrections for the toric code with perfect measurements.
+    """Repeated single shot corrections for the toric code with perfect measurements.
 
-    Return an array of nb of cycles until failure for a given L and p.'''
+    Return an array of nb of cycles until failure for a given L and p."""
     lg.info("L", L, "p", p, "samples", samples, "cutoff", cutoff)
     results = []
     for _ in trange(samples, desc='%d; %.4f' % (L, p),
@@ -430,10 +430,10 @@ def sample(L, p, samples=1000, cutoff=200):  # L 码距 p 物理错误率 sample
 
 
 def stat_estimator(samples, cutoff=200, confidence=0.99):  # 统计估计器
-    '''Max Likelihood Estimator for censored exponential distribution.
+    """Max Likelihood Estimator for censored exponential distribution.
 
     See "Estimation of Parameters of Truncated or Censored Exponential Distributions",
-    Walter L. Deemer and David F. Votaw'''
+    Walter L. Deemer and David F. Votaw"""
     samples = samples.astype(float)
     n = (samples < cutoff).sum()
     N = len(samples)
@@ -453,7 +453,7 @@ def stat_estimator(samples, cutoff=200, confidence=0.99):  # 统计估计器
 # 使用二分搜索方法在两个不同大小的 toric code（由 Lsmall 和 Llarge 参数指定）之间找到物理错误率的阈值。
 # 这个阈值是指 toric code 从可靠（能够有效纠错）到不可靠（无法有效纠错）的临界错误率
 def find_threshold(Lsmall=3, Llarge=5, p=0.8, high=1, low=0.79, samples=1000, logfile=None):  # logfile:是否写入日志，不写就画图输出
-    '''Use binary search (between two sizes of codes) to find the threshold for the toric code.'''
+    """Use binary search (between two sizes of codes) to find the threshold for the toric code."""
     print("find_threshold start.")
     print("new!")
     ps = []  # 用于测试的物理错误率的 p 值们
@@ -549,7 +549,7 @@ def find_threshold(Lsmall=3, Llarge=5, p=0.8, high=1, low=0.79, samples=1000, lo
 
 def generate_training_data(l=3, p=0.9, train_size=2000000,
                            test_size=100000):  # TODO duplicated code with data_generator in neural.py
-    '''Generate errors and corresponding stabilizers at a given `p` for the toric code.
+    """Generate errors and corresponding stabilizers at a given `p` for the toric code.
 
     The samples with no errors are skipped.
     It counts and prints out how many of the errors are fixed by MWPM.
@@ -558,27 +558,27 @@ def generate_training_data(l=3, p=0.9, train_size=2000000,
               Zstab_x_test,  Zstab_y_test,  Xstab_x_test,  Xstab_y_test)
     train_size: 训练集大小
     test_size: 测试集大小
-    '''
-    Zstab_x_train = np.zeros((train_size, l ** 2))
-    Zstab_y_train = np.zeros((train_size, 2 * l ** 2))
+    """
+    Zstab_x_train = np.zeros((train_size, l ** 2))  # 这里 x y 值得是你和的函数的横坐标和纵坐标
+    Zstab_y_train = np.zeros((train_size, 2 * l ** 2))  # 也就是 y 是目标
     Xstab_x_train = np.zeros((train_size, l ** 2))
     Xstab_y_train = np.zeros((train_size, 2 * l ** 2))
     for i in trange(train_size):
-        t = ToricCode(l)
-        t.add_errors(p)
-        while not (np.any(t.Xflips) or np.any(t.Zflips)):
+        t = ToricCode(l)  # 初始化一个码
+        t.add_errors(p)  # 产生一个错误
+        while not (np.any(t.Xflips) or np.any(t.Zflips)):  # 保证这里确实有错误
             t = ToricCode(l)
-            t.add_errors(p)
-        Zstab_x_train[i, :] = t.Zstabilizer().ravel()
+            t.add_errors(p)  # 否则就继续加错误
+        Zstab_x_train[i, :] = t.Zstabilizer().ravel()  # 这里拉成 1 维的了
         Zstab_y_train[i, :] = t.Xflips.ravel()
         Xstab_x_train[i, :] = t.Xstabilizer().ravel()
         Xstab_y_train[i, :] = t.Zflips.ravel()
-    Zstab_x_test = np.zeros((test_size, l ** 2))
+    Zstab_x_test = np.zeros((test_size, l ** 2))  # 测试集初始化
     Zstab_y_test = np.zeros((test_size, 2 * l ** 2))
     Xstab_x_test = np.zeros((test_size, l ** 2))
     Xstab_y_test = np.zeros((test_size, 2 * l ** 2))
     errors = xstab_errors = zstab_errors = 0
-    for i in trange(test_size):
+    for i in trange(test_size):  # 和训练集前段一样
         t = ToricCode(l)
         t.add_errors(p)
         while not (np.any(t.Xflips) or np.any(t.Zflips)):
@@ -588,18 +588,19 @@ def generate_training_data(l=3, p=0.9, train_size=2000000,
         Zstab_y_test[i, :] = t.Xflips.ravel()
         Xstab_x_test[i, :] = t.Xstabilizer().ravel()
         Xstab_y_test[i, :] = t.Zflips.ravel()
-        t.perform_perfect_correction()
-        errors += any(t.logical_errors())
-        xstab_errors += any(t.logical_errors()[0:2])
-        zstab_errors += any(t.logical_errors()[2:4])
+        t.perform_perfect_correction()  # 但是会对其进行一次完美纠错
+        errors += any(t.logical_errors())  # 累加逻辑错误？为什么
+        xstab_errors += any(t.logical_errors()[0:2])  # 累加 X 逻辑错误，也就是产生了 X 逻辑算符
+        zstab_errors += any(t.logical_errors()[2:4])  # 累加 Z 逻辑错误，也就是产生了 Z 逻辑算符
     decoded_fraction = 1 - errors / test_size
     xstab_decoded_fraction = 1 - xstab_errors / test_size
     zstab_decoded_fraction = 1 - zstab_errors / test_size
     print('decoded_fraction, zstab_decoded_fraction, xstab_decoded_fraction =')
     print(decoded_fraction, zstab_decoded_fraction, xstab_decoded_fraction)
     return ((Zstab_x_train, Zstab_y_train, Xstab_x_train, Xstab_y_train,
-             Zstab_x_test, Zstab_y_test, Xstab_x_test, Xstab_y_test),
-            (decoded_fraction, zstab_decoded_fraction, xstab_decoded_fraction))
+             Zstab_x_test, Zstab_y_test, Xstab_x_test, Xstab_y_test),  # 训练数据
+            (decoded_fraction, zstab_decoded_fraction, xstab_decoded_fraction))  # 一个结果
+
 
 # def
 
@@ -626,3 +627,131 @@ def generate_training_data(l=3, p=0.9, train_size=2000000,
 # print(toric.flatZflips2Xerr)
 # plt.show()
 # print("program over.")
+
+
+def shift_matrix(matrix, shift_row, shift_col):
+    """
+    Shifts the matrix according to given row and column shifts with periodic boundary conditions.
+    """
+    shifted_matrix = np.roll(matrix, shift_row, axis=0)
+    shifted_matrix = np.roll(shifted_matrix, shift_col, axis=1)
+    return shifted_matrix
+
+
+def is_shifted_version(matrix1, matrix2):
+    """
+    Checks if matrix2 is a shifted version of matrix1 with periodic boundary conditions.
+    """
+    rows, cols = matrix1.shape
+    for r_shift in range(rows):
+        for c_shift in range(cols):
+            if np.array_equal(shift_matrix(matrix1, r_shift, c_shift), matrix2):
+                return True
+    return False
+
+
+def find_first_one(matrix):
+    """
+    Finds the row and column of the first '1' in the matrix, starting from the top-left corner,
+    considering periodic boundary conditions.
+    """
+    rows, cols = matrix.shape
+    for r in range(rows):
+        for c in range(cols):
+            if matrix[r, c] == 1:
+                return r, c
+    return None, None  # Return None if there is no '1' in the matrix
+
+
+def map_to_top_left(matrix):
+    """
+    Maps the first '1' in the matrix to the top-left corner using periodic boundary conditions.
+    """
+    row_shift, col_shift = find_first_one(matrix)
+    # print("first one position: (", row_shift, ", ", col_shift, ")")
+    if row_shift is not None and col_shift is not None:
+        return shift_matrix(matrix, -row_shift, -col_shift)
+    return matrix
+
+
+def symmetry_filter_matrix(allstar_matrices, matrix):
+    # print("matrix before to top_left: ")
+    # print(matrix)
+    # 将matrix映射到左上角
+    matrix = map_to_top_left(matrix)
+    # print("matrix after to top_left: ")
+    # print(matrix)
+    # 判断映射后的元素在不在全明星中
+    matrix_tuple = tuple(map(tuple, matrix))
+    if matrix_tuple in allstar_matrices:
+        # 在，直接return true，表示过滤到了
+        return True
+        # 不在，把这个代表加到集合里，并返回 false，表示没过滤到
+    else:
+        allstar_matrices.add(matrix_tuple)
+        return False
+
+
+def symmetry_filter(flips, X=False, Y=False):
+    l = len(flips)
+    half = int(l/2)
+    flips_X = flips[0:half]
+    flips_Y = flips[half:l]
+    res = False
+    if X:
+        n = int(np.sqrt(len(flips_X)))
+        matrix = flips_X.reshape(n, n)
+        res = symmetry_filter_matrix(allstar_matrices_X, matrix)
+    if Y:
+        n = int(np.sqrt(len(flips_Y)))
+        matrix = flips_Y.reshape(n, n)
+        res = symmetry_filter_matrix(allstar_matrices_Y, matrix)
+    return res
+
+
+allstar_matrices_X = set()
+allstar_matrices_Y = set()
+
+
+def test_filter():
+    allstar_matrices = set()
+
+    # Example matrices
+    matrix_A = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+    matrix_B = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
+
+    matrix_C = np.array([[0, 1, 0, 0, 0], [0, 1, 0, 0, 0], [0, 1, 1, 0, 0], [0, 0, 1, 0, 0], [0, 0, 0, 0, 0]])
+    matrix_D = np.array([[0, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 0, 0, 0, 1]])
+
+    matrix_E = np.array([[0, 0, 0, 0, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 1, 0], [0, 0, 0, 0, 1]])
+
+    # Checking if matrix_B is a shifted version of matrix_A
+    result01 = is_shifted_version(matrix_A, matrix_B)
+    result02 = is_shifted_version(matrix_C, matrix_D)
+    print(result01)
+    print(result02)
+
+    # print("map_to_top_left(matrix_C)")
+    # print(map_to_top_left(matrix_C))
+    #
+    # print("map_to_top_left(matrix_D)")
+    # print(map_to_top_left(matrix_D))
+
+    print(len(allstar_matrices))
+
+    symmetry_filter_matrix(allstar_matrices, matrix_C)
+
+    print(len(allstar_matrices))
+
+    symmetry_filter_matrix(allstar_matrices, matrix_E)
+
+    print(len(allstar_matrices))
+
+    symmetry_filter_matrix(allstar_matrices, matrix_D)
+
+    print(len(allstar_matrices))
+
+    # 输出 1 2 2 则是对的
+
+
+test_filter()

@@ -151,11 +151,12 @@ def create_model(L, hidden_sizes=[4], hidden_act='tanh', act='sigmoid', loss='bi
     out_dim = 2 * L ** 2 * (X + Z)  # 输出层维度
     model = Sequential()  # 使用 Keras 的 Sequential 模型
     model.add(
-        Dense(int(hidden_sizes[0] * out_dim), input_dim=in_dim, kernel_initializer='glorot_uniform'))  # 增加 Dense（全连接）层，并设定 Glorot 均匀初始化这样的权重初始化方法
-    if batchnorm:   # 每个全连接层之后加不加批量归一化层
+        Dense(int(hidden_sizes[0] * out_dim), input_dim=in_dim,
+              kernel_initializer='glorot_uniform'))  # 增加 Dense（全连接）层，并设定 Glorot 均匀初始化这样的权重初始化方法
+    if batchnorm:  # 每个全连接层之后加不加批量归一化层
         model.add(BatchNormalization(momentum=batchnorm))
-    model.add(Activation(hidden_act))   # 给模型加隐藏层激活函数
-    for s in hidden_sizes[1:]:          # 加上每一个隐藏层
+    model.add(Activation(hidden_act))  # 给模型加隐藏层激活函数
+    for s in hidden_sizes[1:]:  # 加上每一个隐藏层
         model.add(Dense(int(s * out_dim), kernel_initializer='glorot_uniform'))
         if batchnorm:
             model.add(BatchNormalization(momentum=batchnorm))
@@ -163,15 +164,16 @@ def create_model(L, hidden_sizes=[4], hidden_act='tanh', act='sigmoid', loss='bi
     model.add(Dense(out_dim, kernel_initializer='glorot_uniform'))
     if batchnorm:
         model.add(BatchNormalization(momentum=batchnorm))
-    model.add(Activation(act))      # 最后设置上输出层的激活函数
-    c = CodeCosts(L, ToricCode, Z, X, normcentererr_p)              # 设置自定义损失函数
+    model.add(Activation(act))  # 最后设置上输出层的激活函数
+    c = CodeCosts(L, ToricCode, Z, X, normcentererr_p)  # 设置自定义损失函数
     losses = {'e_binary_crossentropy': c.e_binary_crossentropy,
               's_binary_crossentropy': c.s_binary_crossentropy,
               'se_binary_crossentropy': c.se_binary_crossentropy}
     # 配置神经网络的训练过程
     model.compile(loss=losses.get(loss, loss),
-                  optimizer=Nadam(lr=learning_rate),    # 设定了一个优化器
-                  metrics=[c.triv_no_error, c.e_binary_crossentropy, c.s_binary_crossentropy]   # 评估指标不会用来训练过程中的权重调整，但提供了模型性能的额外信息，估计是训练的时候输出用的
+                  optimizer=Nadam(lr=learning_rate),  # 设定了一个优化器
+                  metrics=[c.triv_no_error, c.e_binary_crossentropy, c.s_binary_crossentropy]
+                  # 评估指标不会用来训练过程中的权重调整，但提供了模型性能的额外信息，估计是训练的时候输出用的
                   )
     return model
 
@@ -184,7 +186,7 @@ def makeflips(q, out_dimZ, out_dimX):
     :param out_dimX:
     :return:
     """
-    flips = np.zeros((out_dimZ + out_dimX,), dtype=np.dtype('b'))   # 初始化
+    flips = np.zeros((out_dimZ + out_dimX,), dtype=np.dtype('b'))  # 初始化
     rand = np.random.rand(
         out_dimZ or out_dimX)  # if neither is zero they have to necessarily be the same (equal to the number of physical qubits)
     both_flips = (2 * q <= rand) & (rand < 3 * q)
@@ -198,6 +200,8 @@ def makeflips(q, out_dimZ, out_dimX):
         flips[out_dimZ:out_dimZ + out_dimX] ^= both_flips
     return flips
 
+
+# print(makeflips(0.1, 18, 18))
 
 def nonzeroflips(q, out_dimZ, out_dimX):
     """
@@ -236,33 +240,53 @@ def data_generator(H, out_dimZ, out_dimX, in_dim, p, batch_size=512, size=None,
                    normcenterstab=False, normcentererr=False):
     c = 0
     q = (1 - p) / 3
+    # print("「data_generator」")
+    # print("q: ", q, " out_dimZ=", out_dimZ, " out_dimX=", out_dimX, " in_dim=", in_dim)
+    sym_fil_num = 0
     while True:
         flips = np.empty((batch_size, out_dimZ + out_dimX), dtype=int)  # TODO dtype? byte?
         for i in range(batch_size):
             flip = nonzeroflips(q, out_dimZ, out_dimX)
-            stab = np.dot(flip, H.T) % 2
-            # if i < 10:
-            #     print("stab: ")
-            #     print(stab)
+            # print("batch_size=", batch_size, "i=", i, "flip: ", flip)
+            stab = np.dot(flip, H.T) % 2    # 前一半为 Z 稳定子拉平；后一半为 X 稳定子拉平
+            # print("batch_size=", batch_size, "i=", i, "stab: ", stab)
             g_c = 0
-            while codes.symmetry_filter(stab, True, True) and g_c < 10000:
-                # print(" make filter")
-                # print()
-                flip = nonzeroflips(q, out_dimZ, out_dimX)
-                stab = np.dot(flip, H.T) % 2
-                g_c += 1
-            if g_c >= 10000:
-                print("sym so much!!!!!")
+            ma = pow(2, int(len(stab)/2) - 2)
+            if len(codes.allstar_matrices_X) >= ma and len(codes.allstar_matrices_Y) >= ma:
+                # print("满了，不需要过滤")
+                pass
+            else:
+                while codes.symmetry_filter(stab, True, True) and g_c < 5:
+                    sym_fil_num += 1
+                    print("有重复，过滤 g_c=", g_c)
+                    print("  asm_x: ", len(codes.allstar_matrices_X))
+                    print("  asm_Y: ", len(codes.allstar_matrices_Y))
+                    # print("当前重复过滤贡献：", sym_fil_num)
+                    # print(" make filter")
+                    # print()
+                    flip = nonzeroflips(q, out_dimZ, out_dimX)
+                    print("重新采样, flip=", flip)
+                    stab = np.dot(flip, H.T) % 2
+                    print("重新采样，stab=", stab)
+                    g_c += 1
+                if g_c >= 10:
+                    print("全重复，直接采取, flip=", flip)
             flips[i, :] = flip
         stabs = np.dot(flips, H.T) % 2  # 使用校验矩阵生成错误症状
         if normcenterstab:
             stabs = do_normcenterstab(stabs, p)  # 这里是错误症状结果吧，预处理的是这里
         if normcentererr:
             flips = do_normcentererr(flips, p)
+        # return stabs, flips  # {错误症状，错误信息}对儿，训练数据，如果之类错误症状不对劲，那就不生成这一个
         yield (stabs, flips)  # {错误症状，错误信息}对儿，训练数据，如果之类错误症状不对劲，那就不生成这一个
-        c += 1
+        # c += 1
         # if size and c==size:
         #     raise StopIteration
+
+
+# code = ToricCode(3)
+# print("?????")
+# data_generator(code.H(True, True), 18, 18, 9, 0.9, batch_size=10)
 
 def do_normcenterstab(stabs, p):
     avg = (1 - p) * 2 / 3
@@ -291,10 +315,10 @@ def undo_normcentererr(flips, p):
 
 
 def smart_sample(H, stab, pred, sample, giveup):
-    '''Sample `pred` until `H@sample==stab`.
+    """Sample `pred` until `H@sample==stab`.
 
     `sample` is modified in place. `giveup` attempts are done at most.
-    Returns the number of attempts.'''
+    Returns the number of attempts."""
     npany = np.any
     nprandomuniform = np.random.uniform
     npsum = np.sum

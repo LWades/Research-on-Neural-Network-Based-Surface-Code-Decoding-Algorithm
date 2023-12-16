@@ -693,25 +693,42 @@ def symmetry_filter_matrix(allstar_matrices, matrix):
 
 
 def symmetry_filter(flips, X=False, Y=False):
+    # print("进入对称性过滤器：")
+    # print("flips: ")
+    # print(flips)
     l = len(flips)
+    # print("l: ", l)
     half = int(l/2)
+    ma = int(pow(2, half-2))
+    # if len(allstar_matrices_X) >= ma and len(allstar_matrices_Y) >= ma:
+    #     print("满了，不需要过滤")
+    #     return False
+    # print("half: ", half)
     flips_X = flips[0:half]
+    # print(flips_X)
     flips_Y = flips[half:l]
+    # print(flips_Y)
     res = False
     if X:
         n = int(np.sqrt(len(flips_X)))
         matrix = flips_X.reshape(n, n)
+        # print("X: after reshape")
+        # print(matrix)
         res = symmetry_filter_matrix(allstar_matrices_X, matrix)
+        # print("res01: ", res, " m_x num: ", len(allstar_matrices_X))
     if Y:
         n = int(np.sqrt(len(flips_Y)))
         matrix = flips_Y.reshape(n, n)
+        # print("Y: after reshape")
+        # print(matrix)
         res = symmetry_filter_matrix(allstar_matrices_Y, matrix)
+        # print("res02:", res, " m_y num: ", len(allstar_matrices_Y))
     return res
 
 
 allstar_matrices_X = set()
 allstar_matrices_Y = set()
-
+allstar_full = False
 
 def test_filter():
     allstar_matrices = set()

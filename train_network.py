@@ -52,6 +52,10 @@ from neural import create_model, data_generator, do_normcenterstab, undo_normcen
 from codes import ToricCode
 import numpy as np
 import tqdm
+import resource
+
+# soft, hard = resource.getrlimit(resource.RLIMIT_AS)
+# resource.setrlimit(resource.RLIMIT_AS, (20 * 1024 ^ 6, hard))  # 限制内存上限 10G
 
 if args.trainset:
     f = np.load(args.trainset)  # 加载完整的训练集
@@ -88,7 +92,7 @@ H = code.H(args.Zstab, args.Xstab)
 if args.load:
     model.load_weights(args.load)
 if args.epochs:
-    if args.trainset:   # 如果有现成的训练集
+    if args.trainset:  # 如果有现成的训练集
         raise NotImplementedError("This is still using the OLD keras API. Update it!")
         x_train = []
         y_train = []
